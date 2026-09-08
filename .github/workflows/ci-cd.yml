@@ -25,14 +25,13 @@ jobs:
         run: npm ci
 
       - name: Run TypeScript type-check
-        run: npm run build # Or npx tsc --noEmit if separate
+        run: npm run lint
 
       - name: Build production bundle
         run: npm run build
         env:
           NODE_ENV: production
 
-  # Optional: Automatically deploy to GitHub Pages on pushes to main
   deploy:
     name: Deploy to GitHub Pages
     needs: lint-and-test

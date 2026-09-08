@@ -178,7 +178,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         <div className="flex items-center gap-3 mb-6">
           <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white p-0.5 shadow-md shadow-blue-950/40 ring-2 ring-white/40">
             <img
-              src="/assets/equalgrant_logo.png"
+              src={`${import.meta.env.BASE_URL}assets/equalgrant_logo.png`}
               alt="EqualGrant Manager"
               className="h-full w-full object-contain rounded-full"
               referrerPolicy="no-referrer"

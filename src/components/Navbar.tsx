@@ -66,7 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Crisp white circular base ensuring the blue and green emblem pops against dark navy header */}
             <div className="relative flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center overflow-hidden rounded-full bg-white p-0.5 shadow-md shadow-blue-950/60 ring-2 ring-white/50 transition-transform duration-300 group-hover:scale-105 group-hover:ring-emerald-400/70">
               <img
-                src="/assets/equalgrant_logo.png"
+                src={`${import.meta.env.BASE_URL}assets/equalgrant_logo.png`}
                 alt="EqualGrant Manager Logo"
                 className="h-full w-full object-contain rounded-full"
                 referrerPolicy="no-referrer"

@@ -84,7 +84,7 @@ const EqualGrantApp: React.FC = () => {
           activeView === 'landing' ? 'opacity-15 scale-100' : 'opacity-40 scale-105'
         }`}
         style={{
-          backgroundImage: `url('/assets/system_bg.jpg')`,
+          backgroundImage: `url('${import.meta.env.BASE_URL}assets/system_bg.jpg')`,
         }}
         id="system-background-canvas"
       />
