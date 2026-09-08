@@ -62,6 +62,7 @@ class CompatibleDatabase {
       if (users.length === 0) {
         await this.seedInitialData();
       }
+      await this.removeDemoFundingWindows();
       this.isInitialized = true;
     } catch (err) {
       console.warn('IndexedDB initialization failed, using localStorage fallback', err);
@@ -100,41 +101,6 @@ class CompatibleDatabase {
     await this.put('users', demoFunder);
     await this.put('users', demoAwardee);
 
-    // Initial funding opportunities matching documentation
-    const now = Date.now();
-    const demo1: FundingWindow = {
-      id: 'demo-1',
-      title: 'Girls in STEM Innovation Grant 2026',
-      org: 'Gender Equality Club Nigeria',
-      description: "Supporting community-led innovations that increase girls' participation in STEM across secondary schools in West Africa.",
-      amount: '25,000',
-      currency: 'USD',
-      deadline: new Date(now + 14 * 86400000 + 6 * 3600000).toISOString(),
-      category: 'Education & Equality',
-      eligibility: 'NGOs, CBOs, School networks in Africa',
-      createdBy: demoFunder.id,
-      createdAt: new Date(now - 86400000).toISOString(),
-      status: 'open',
-    };
-
-    const demo2: FundingWindow = {
-      id: 'demo-2',
-      title: 'Climate Resilience Seed Fund',
-      org: 'EqualGrant Foundation',
-      description: 'Early-stage funding for grassroots climate adaptation projects with measurable community impact.',
-      amount: '5,000,000',
-      currency: 'NGN',
-      deadline: new Date(now + 9 * 86400000 + 11 * 3600000).toISOString(),
-      category: 'Climate & Sustainability',
-      eligibility: 'Community groups worldwide',
-      createdBy: demoFunder.id,
-      createdAt: new Date(now - 172800000).toISOString(),
-      status: 'open',
-    };
-
-    await this.put('fundingWindows', demo1);
-    await this.put('fundingWindows', demo2);
-
     // Default form questions matching documentation
     const q1: FormQuestion = {
       id: 'q1',
@@ -172,6 +138,11 @@ class CompatibleDatabase {
       localStorage.setItem('eq_submissions', JSON.stringify([]));
       localStorage.setItem('eq_auditLogs', JSON.stringify([]));
     }
+  }
+
+  private async removeDemoFundingWindows(): Promise<void> {
+    await this.delete('fundingWindows', 'demo-1');
+    await this.delete('fundingWindows', 'demo-2');
   }
 
   // Generic IndexedDB helpers
