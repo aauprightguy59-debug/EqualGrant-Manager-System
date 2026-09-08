@@ -9,11 +9,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, pass: string, expectedRole?: UserRole, rememberMe?: boolean) => Promise<{ success: boolean; error?: string }>;
-  signup: (params: { email: string; password: string; fullName: string; org: string; role: UserRole }, rememberMe?: boolean) => Promise<{ success: boolean; error?: string }>;
+  signup: (params: { email: string; password: string; fullName: string; org: string; organizationRole: string; applicantType: 'organization' | 'individual'; registrationStatus: 'registered' | 'not_registered'; role: UserRole }, rememberMe?: boolean) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   updateProfile: (updates: { fullName?: string; org?: string }) => Promise<{ success: boolean; error?: string }>;
   changePassword: (oldPass: string, newPass: string) => Promise<{ success: boolean; error?: string }>;
-  quickDemoLogin: (role: 'funder' | 'awardee') => Promise<void>;
   authError: string | null;
   clearAuthError: () => void;
 }
@@ -145,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signup = async (
-    params: { email: string; password: string; fullName: string; org: string; role: UserRole },
+    params: { email: string; password: string; fullName: string; org: string; organizationRole: string; applicantType: 'organization' | 'individual'; registrationStatus: 'registered' | 'not_registered'; role: UserRole },
     rememberMe = false
   ): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
@@ -176,6 +175,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: trimmedEmail,
         fullName: params.fullName.trim(),
         org: params.org.trim() || 'Independent Organization',
+        organizationRole: params.organizationRole.trim(),
+        applicantType: params.applicantType,
+        registrationStatus: params.registrationStatus,
         role: params.role,
         passwordHash,
         salt,
@@ -285,39 +287,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const quickDemoLogin = async (targetRole: 'funder' | 'awardee'): Promise<void> => {
-    setIsLoading(true);
-    try {
-      await db.initialize();
-      const users = await db.getUsers();
-      const demoUser = users.find(u => u.role === targetRole);
-      if (demoUser) {
-        saveSession(demoUser, false);
-      } else {
-        // Create if missing
-        const salt = generateSalt();
-        const hash = await hashPassword(targetRole === 'funder' ? 'Funder123!' : 'Awardee123!', salt);
-        const newUser: User = {
-          id: `usr-${targetRole}-demo`,
-          email: targetRole === 'funder' ? 'funder@equalgrant.org' : 'applicant@grassroots.org',
-          fullName: targetRole === 'funder' ? 'Dr. Amina Bello' : 'Chidi Okafor',
-          org: targetRole === 'funder' ? 'Gender Equality Club Nigeria' : 'West Africa Youth & STEM Network',
-          role: targetRole,
-          passwordHash: hash,
-          salt,
-          createdAt: new Date().toISOString(),
-          lastLoginAt: new Date().toISOString(),
-        };
-        await db.saveUser(newUser);
-        saveSession(newUser, false);
-      }
-    } catch (err) {
-      console.error('Demo login error:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <AuthContext.Provider
       value={{
@@ -330,7 +299,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         updateProfile,
         changePassword,
-        quickDemoLogin,
         authError,
         clearAuthError,
       }}

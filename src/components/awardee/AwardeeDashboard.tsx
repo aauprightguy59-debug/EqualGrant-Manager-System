@@ -20,6 +20,7 @@ import {
   Sparkles,
   Inbox,
   Filter,
+  Save,
 } from 'lucide-react';
 
 interface AwardeeDashboardProps {
@@ -77,6 +78,30 @@ export const AwardeeDashboard: React.FC<AwardeeDashboardProps> = ({
   useEffect(() => {
     loadAwardeeData();
   }, [user]);
+
+  useEffect(() => {
+    const loadDraft = async () => {
+      if (!user || !selectedCall) return;
+      const draft = await db.getApplicationDraft(user.id, selectedCall.id);
+      setFormAnswers(draft?.answers || {});
+    };
+    loadDraft();
+  }, [user, selectedCall]);
+
+  const handleSaveDraft = async () => {
+    if (!user || !selectedCall) {
+      showNotification('Sign in and select a call before saving a draft.', 'error');
+      return;
+    }
+    await db.saveApplicationDraft({
+      id: `draft-${user.id}-${selectedCall.id}`,
+      callId: selectedCall.id,
+      applicantId: user.id,
+      answers: formAnswers,
+      updatedAt: new Date().toISOString(),
+    });
+    showNotification('Application draft saved. You can continue later.');
+  };
 
   const countWords = (text: string): number => {
     const trimmed = (text || '').trim();
@@ -144,6 +169,7 @@ export const AwardeeDashboard: React.FC<AwardeeDashboardProps> = ({
       };
 
       await db.saveSubmission(newSubmission);
+      await db.deleteApplicationDraft(user.id, selectedCall.id);
       await db.addAuditLog({
         id: `audit-${Date.now()}`,
         timestamp: new Date().toISOString(),
@@ -461,6 +487,14 @@ export const AwardeeDashboard: React.FC<AwardeeDashboardProps> = ({
                           <span>Submit Application</span>
                         </>
                       )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveDraft}
+                      className="rounded-2xl border border-sky-400/30 bg-sky-400/10 px-5 py-3 text-[13px] text-sky-200 hover:bg-sky-400/20 transition cursor-pointer flex items-center gap-2"
+                    >
+                      <Save className="h-4 w-4" />
+                      <span>Save Draft</span>
                     </button>
                     <button
                       type="button"

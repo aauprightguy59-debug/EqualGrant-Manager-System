@@ -1,4 +1,4 @@
-import { User, FundingWindow, FormQuestion, GrantSubmission, AuditLogEntry } from '../types';
+import { User, FundingWindow, FormQuestion, GrantSubmission, GrantApplicationDraft, AuditLogEntry } from '../types';
 import { hashPassword, generateSalt } from './crypto';
 
 const DB_NAME = 'EqualGrantDB_v1';
@@ -79,6 +79,9 @@ class CompatibleDatabase {
       email: 'funder@equalgrant.org',
       fullName: 'Dr. Amina Bello',
       org: 'Gender Equality Club Nigeria',
+      organizationRole: 'Funder administrator',
+      applicantType: 'organization',
+      registrationStatus: 'registered',
       role: 'funder',
       passwordHash: hashFunder,
       salt: saltFunder,
@@ -92,6 +95,9 @@ class CompatibleDatabase {
       email: 'applicant@grassroots.org',
       fullName: 'Chidi Okafor',
       org: 'West Africa Youth & STEM Network',
+      organizationRole: 'Applicant representative',
+      applicantType: 'organization',
+      registrationStatus: 'registered',
       role: 'awardee',
       passwordHash: hashAwardee,
       salt: saltAwardee,
@@ -315,6 +321,19 @@ class CompatibleDatabase {
 
   public async saveSubmission(sub: GrantSubmission): Promise<void> {
     await this.put('submissions', sub);
+  }
+
+  public async getApplicationDraft(applicantId: string, callId: string): Promise<GrantApplicationDraft | null> {
+    const raw = localStorage.getItem(`eq_draft_${applicantId}_${callId}`);
+    return raw ? JSON.parse(raw) : null;
+  }
+
+  public async saveApplicationDraft(draft: GrantApplicationDraft): Promise<void> {
+    localStorage.setItem(`eq_draft_${draft.applicantId}_${draft.callId}`, JSON.stringify(draft));
+  }
+
+  public async deleteApplicationDraft(applicantId: string, callId: string): Promise<void> {
+    localStorage.removeItem(`eq_draft_${applicantId}_${callId}`);
   }
 
   // Audit Logs

@@ -105,7 +105,11 @@ const EqualGrantApp: React.FC = () => {
       {/* Main Navbar */}
       <Navbar
         activeView={activeView}
-        onSelectView={(view) => setActiveView(view)}
+        onSelectView={(view) => {
+          if (view === 'landing' || (isAuthenticated && user?.role === view)) {
+            setActiveView(view);
+          }
+        }}
         onOpenAuth={handleOpenAuth}
         onOpenProfile={() => setProfileModalOpen(true)}
       />
@@ -130,7 +134,7 @@ const EqualGrantApp: React.FC = () => {
 
         {activeView === 'funder' && (
           <FunderDashboard
-            fundingWindows={fundingWindows}
+            fundingWindows={fundingWindows.filter((call) => call.createdBy === user?.id)}
             onRefreshWindows={refreshFundingWindows}
             currentTime={currentTime}
           />

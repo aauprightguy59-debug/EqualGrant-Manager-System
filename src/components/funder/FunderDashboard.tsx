@@ -5,6 +5,7 @@ import {
   FormQuestion,
   GrantSubmission,
   FunderTab,
+  FundingAttachment,
 } from '../../types';
 import { db } from '../../lib/db';
 import {
@@ -26,6 +27,8 @@ import {
   Download,
   Search,
   Filter,
+  Paperclip,
+  Table2,
 } from 'lucide-react';
 
 const SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP', 'NGN', 'KES', 'ZAR', 'INR', 'CAD', 'AUD', 'GHS'];
@@ -54,6 +57,8 @@ export const FunderDashboard: React.FC<FunderDashboardProps> = ({
     deadline: '',
     category: 'Education & Equality',
     eligibility: 'NGOs, CBOs, Educational Institutions',
+    attachments: [] as FundingAttachment[],
+    tableColumns: [] as string[],
   });
 
   // Form Builder State
@@ -79,13 +84,14 @@ export const FunderDashboard: React.FC<FunderDashboardProps> = ({
   const loadData = async () => {
     const qList = await db.getFormQuestions();
     setQuestions(qList);
-    const subList = await db.getSubmissions();
+    const ownedCallIds = new Set(fundingWindows.filter((call) => call.createdBy === user?.id).map((call) => call.id));
+    const subList = (await db.getSubmissions()).filter((submission) => ownedCallIds.has(submission.callId));
     setSubmissions(subList);
   };
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [fundingWindows, user]);
 
   const formatCountdown = (deadlineStr: string): string => {
     const deadline = new Date(deadlineStr);
@@ -119,6 +125,7 @@ export const FunderDashboard: React.FC<FunderDashboardProps> = ({
       createdBy: user?.id || 'funder-admin',
       createdAt: new Date().toISOString(),
       status: 'open',
+      attachments: newCall.attachments,
     };
 
     await db.saveFundingWindow(created);
@@ -142,8 +149,25 @@ export const FunderDashboard: React.FC<FunderDashboardProps> = ({
       deadline: '',
       category: 'Education & Equality',
       eligibility: 'NGOs, CBOs, Educational Institutions',
+      attachments: [],
+      tableColumns: [],
     });
     setActiveTab('calls');
+  };
+
+  const handleAttachmentUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []) as File[];
+    const allowed = ['application/pdf', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    Promise.all(files.filter((file) => allowed.includes(file.type)).map((file) => new Promise<FundingAttachment>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({ id: `file-${Date.now()}-${file.name}`, name: file.name, type: file.type, size: file.size, dataUrl: String(reader.result) });
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    }))).then((attachments) => setNewCall((current) => ({ ...current, attachments: [...current.attachments, ...attachments] })));
+  };
+
+  const handleAddTableQuestion = () => {
+    setQuestions([...questions, { id: `q${Date.now()}`, label: 'Data table', type: 'table', maxWords: 0, required: false, tableColumns: ['Column 1', 'Column 2'] }]);
   };
 
   // Delete Call
@@ -457,6 +481,21 @@ export const FunderDashboard: React.FC<FunderDashboardProps> = ({
                 </div>
               </div>
 
+              <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[12px] font-semibold text-white">Supporting files</div>
+                    <div className="text-[11px] text-white/45">PDF, XLS, JPEG, and Word files</div>
+                  </div>
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-white/[0.10] bg-white/[0.05] px-3 py-2 text-[12px] text-white/80">
+                    <Paperclip className="h-3.5 w-3.5" />
+                    Attach files
+                    <input type="file" multiple accept=".pdf,.xls,.xlsx,.jpg,.jpeg,.png,.doc,.docx" onChange={handleAttachmentUpload} className="hidden" />
+                  </label>
+                </div>
+                {newCall.attachments.length > 0 && <div className="mt-3 space-y-1 text-[11px] text-white/60">{newCall.attachments.map((file) => <div key={file.id}>{file.name}</div>)}</div>}
+              </div>
+
               <div>
                 <label className="text-[11px] uppercase tracking-widest text-white/50">
                   Grant Description & Objective
@@ -569,6 +608,12 @@ export const FunderDashboard: React.FC<FunderDashboardProps> = ({
                   Add Question
                 </button>
                 <button
+                  onClick={handleAddTableQuestion}
+                  className="rounded-full border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-[12px] font-semibold text-sky-200 hover:bg-sky-400/20 transition cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <Table2 className="h-3.5 w-3.5" /> Add Table
+                </button>
+                <button
                   onClick={handleSaveFormTemplate}
                   disabled={isSavingQuestions}
                   className="rounded-full border border-violet-400/30 bg-violet-500/20 px-4 py-2 text-[12px] font-semibold text-violet-200 hover:bg-violet-500/30 transition cursor-pointer"
@@ -606,6 +651,9 @@ export const FunderDashboard: React.FC<FunderDashboardProps> = ({
                           <option value="number" className="bg-[#0a0a0f]">
                             NUMERIC
                           </option>
+                          <option value="table" className="bg-[#0a0a0f]">
+                            TABLE
+                          </option>
                         </select>
                         <label className="flex items-center gap-1.5 text-[11px] text-white/50 ml-4">
                           <input
@@ -626,6 +674,15 @@ export const FunderDashboard: React.FC<FunderDashboardProps> = ({
                         className="w-full bg-transparent text-[13.5px] font-medium text-white outline-none border-b border-white/[0.08] pb-1 focus:border-violet-400/50"
                         placeholder="Enter question prompt..."
                       />
+
+                      {q.type === 'table' && (
+                        <input
+                          value={(q.tableColumns || []).join(', ')}
+                          onChange={(e) => handleUpdateQuestion(q.id, { tableColumns: e.target.value.split(',').map((column) => column.trim()).filter(Boolean) })}
+                          className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-[12px] text-white outline-none"
+                          placeholder="Column names, separated by commas"
+                        />
+                      )}
 
                       <div className="flex items-center gap-3 pt-1">
                         <label className="text-[11.5px] text-white/50">Max words:</label>

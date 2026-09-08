@@ -5,6 +5,9 @@ export interface User {
   email: string;
   fullName: string;
   org: string;
+  organizationRole: string;
+  applicantType: 'organization' | 'individual';
+  registrationStatus: 'registered' | 'not_registered';
   role: UserRole;
   passwordHash: string;
   salt: string;
@@ -34,15 +37,25 @@ export interface FundingWindow {
   createdBy: string;
   createdAt: string;
   status: 'open' | 'closed' | 'draft';
+  attachments?: FundingAttachment[];
+}
+
+export interface FundingAttachment {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  dataUrl: string;
 }
 
 export interface FormQuestion {
   id: string;
   label: string;
-  type: 'textarea' | 'input' | 'number' | 'select';
+  type: 'textarea' | 'input' | 'number' | 'select' | 'table';
   maxWords: number;
   required: boolean;
   options?: string[];
+  tableColumns?: string[];
 }
 
 export interface GrantSubmission {
@@ -62,6 +75,14 @@ export interface GrantSubmission {
   reviewNotes?: string;
   reviewedBy?: string;
   reviewedAt?: string;
+}
+
+export interface GrantApplicationDraft {
+  id: string;
+  callId: string;
+  applicantId: string;
+  answers: Record<string, string>;
+  updatedAt: string;
 }
 
 export interface AuditLogEntry {

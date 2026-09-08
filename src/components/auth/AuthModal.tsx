@@ -11,7 +11,6 @@ import {
   Mail,
   User,
   Building2,
-  Sparkles,
   CheckCircle2,
   AlertCircle,
   KeyRound,
@@ -34,7 +33,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   initialRole = 'funder',
   onSuccess,
 }) => {
-  const { login, signup, authError, clearAuthError, quickDemoLogin } = useAuth();
+  const { login, signup, authError, clearAuthError } = useAuth();
 
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [role, setRole] = useState<UserRole>(initialRole);
@@ -48,6 +47,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [organizationRole, setOrganizationRole] = useState('');
+  const [applicantType, setApplicantType] = useState<'organization' | 'individual'>('organization');
+  const [registrationStatus, setRegistrationStatus] = useState<'registered' | 'not_registered'>('registered');
   const [org, setOrg] = useState(
     initialRole === 'funder' ? 'Gender Equality Club Nigeria' : 'Grassroots Youth Initiative'
   );
@@ -115,6 +117,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             password,
             fullName,
             org,
+            organizationRole,
+            applicantType,
+            registrationStatus,
             role,
           },
           rememberMe
@@ -129,24 +134,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Quick fill helper for testing
-  const handleQuickFill = (targetRole: UserRole) => {
-    setRole(targetRole);
-    if (targetRole === 'funder') {
-      setEmail('funder@equalgrant.org');
-      setPassword('Funder123!');
-      setFullName('Dr. Amina Bello');
-      setOrg('Gender Equality Club Nigeria');
-    } else {
-      setEmail('applicant@grassroots.org');
-      setPassword('Awardee123!');
-      setFullName('Chidi Okafor');
-      setOrg('West Africa Youth & STEM Network');
-    }
-    setLocalError(null);
-    clearAuthError();
   };
 
   if (!isOpen) return null;
@@ -255,17 +242,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </button>
           </div>
 
-          {/* Quick Demo Pre-fill */}
-          <button
-            type="button"
-            onClick={() => handleQuickFill(role)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/20 bg-violet-500/10 hover:bg-violet-500/20 px-2.5 py-1 text-[11px] font-medium text-violet-200 transition"
-            id="auth-quick-fill-btn"
-            title="Auto-fill verified demo credentials"
-          >
-            <Sparkles className="h-3 w-3 text-violet-300" />
-            <span>Fill Demo Creds</span>
-          </button>
         </div>
 
         {/* Error Notification */}
@@ -306,6 +282,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   />
                 </div>
               </div>
+
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider text-white/50 mb-1.5">Role in organization *</label>
+                  <input required value={organizationRole} onChange={(e) => setOrganizationRole(e.target.value)} placeholder="e.g. Director, Founder" className="w-full rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-[13px] text-white outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider text-white/50 mb-1.5">Applicant type *</label>
+                  <select value={applicantType} onChange={(e) => setApplicantType(e.target.value as 'organization' | 'individual')} className="w-full rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-[13px] text-white outline-none">
+                    <option value="organization" className="bg-[#0a0a0f]">Organization</option>
+                    <option value="individual" className="bg-[#0a0a0f]">Individual</option>
+                  </select>
+                </div>
+              </div>
+              <label className="flex items-center gap-2 text-[12px] text-white/70">
+                <input type="checkbox" checked={registrationStatus === 'registered'} onChange={(e) => setRegistrationStatus(e.target.checked ? 'registered' : 'not_registered')} />
+                Registered organization / entity
+              </label>
 
               {/* Organization */}
               <div>
@@ -356,7 +350,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               {mode === 'login' && (
                 <button
                   type="button"
-                  onClick={() => alert('Demo Mode: If you forgot your password, you can use "Fill Demo Creds" above or register a new local account.')}
+                  onClick={() => alert('Please contact your organization administrator to reset your password.')}
                   className="text-[11px] text-white/40 hover:text-white/70 transition"
                 >
                   Forgot password?
