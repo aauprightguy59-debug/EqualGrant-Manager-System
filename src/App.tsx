@@ -42,7 +42,12 @@ const EqualGrantApp: React.FC = () => {
   };
 
   useEffect(() => {
-    refreshFundingWindows();
+    const loadFundingWindows = async () => {
+      await db.initialize();
+      await refreshFundingWindows();
+    };
+
+    loadFundingWindows();
   }, []);
 
   // Role selection handling
