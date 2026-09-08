@@ -436,14 +436,14 @@ export const AwardeeDashboard: React.FC<AwardeeDashboardProps> = ({
                           {q.label} {q.required && <span className="text-red-400">*</span>}
                         </label>
 
-                        {q.type === 'textarea' ? (
+                        {q.type === 'textarea' || q.type === 'table' ? (
                           <textarea
                             value={value}
                             onChange={(e) =>
                               setFormAnswers({ ...formAnswers, [q.id]: e.target.value })
                             }
                             rows={5}
-                            placeholder="Type your answer..."
+                            placeholder={q.type === 'table' ? `Enter rows using these columns: ${(q.tableColumns || []).join(', ')}` : 'Type your answer...'}
                             className="mt-3 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-[13px] text-white outline-none resize-none focus:border-violet-400/40"
                           />
                         ) : (
