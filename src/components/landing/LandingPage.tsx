@@ -211,7 +211,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {
               icon: Inbox,
               title: 'Receive & Review',
-              desc: 'Handle 50,000 applications per cycle, triage with AI scoring and notes.',
+              desc: 'Handle thousands of applications per cycle, triage with AI scoring and notes.',
               color: 'text-emerald-400',
             },
             {
