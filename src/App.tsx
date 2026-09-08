@@ -81,7 +81,7 @@ const EqualGrantApp: React.FC = () => {
       {/* Background Graphic: fitted to the landing page and entire application */}
       <div
         className={`fixed inset-0 pointer-events-none -z-20 bg-cover bg-center bg-no-repeat transition-all duration-700 ${
-          activeView === 'landing' ? 'opacity-100 scale-100' : 'opacity-40 scale-105'
+          activeView === 'landing' ? 'opacity-15 scale-100' : 'opacity-40 scale-105'
         }`}
         style={{
           backgroundImage: `url('/assets/system_bg.jpg')`,
@@ -92,7 +92,7 @@ const EqualGrantApp: React.FC = () => {
       <div
         className={`fixed inset-0 pointer-events-none -z-10 transition-colors duration-500 ${
           activeView === 'landing'
-            ? 'bg-gradient-to-b from-[#080d24]/55 via-[#080c1e]/70 to-[#070914]/90'
+            ? 'bg-gradient-to-b from-[#080d24]/85 via-[#080c1e]/92 to-[#070914]/97'
             : 'bg-[#080a14]/85 backdrop-blur-[2px]'
         }`}
       />
